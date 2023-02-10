@@ -1,15 +1,25 @@
 import discord
 from goa import move_images_to_gdrive, download_images, get_images_urls
+import os
+from dotenv import load_dotenv
 
-TOKEN = "MTA3MDc2NjcwMDQ5ODI3NjQxMw.G-ZwjP.0agN6BkL6kv94MiNKwG0tU2QHxc3gzVaNmkzJk"
-URL = "https://discord.com/api/oauth2/authorize?client_id=1070766700498276413&permissions=534723950656&scope=bot"
+load_dotenv()
+
+TOKEN = os.getenv('BOT_TOKEN')
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
+HELP_MSG = """Commands:
+        $greet -> prints hello message
+        $generate <text prompt> -> generates images and sends to google drive
+        """
+
+
 @client.event
 async def on_ready():
     print("Bot ready")
+
 
 @client.event
 async def on_message(message):
@@ -18,15 +28,13 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content=='$greet':
+    if message.content.startswith('$greet'):
         await channel.send('Siema siema kurwa witam!')
+        return
 
     if message.content.startswith('$help'):
-        msg = """Commands:
-        $greet -> prints hello message
-        $generate <text prompt> -> generates images and sends to google drive
-        """
-        await channel.send(msg)
+        await channel.send(HELP_MSG)
+        return
 
     if message.content.startswith('$generate'):
 
@@ -41,7 +49,6 @@ async def on_message(message):
 
         download_images(r, prompt)
 
-
         await channel.send(f"Images downloaded successfully!")
         await channel.send(f"Starting upload to Google drive")
         await channel.send(f"Please wait...")
@@ -49,6 +56,12 @@ async def on_message(message):
         move_images_to_gdrive()
 
         await channel.send(f"All done, ready for the next prompt")
+        return
+
+    if message.content.startswith('$'):
+        await channel.send(f"Command not recognized!")
+        await channel.send(HELP_MSG)
+        return
 
 
 client.run(TOKEN)
