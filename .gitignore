@@ -3,3 +3,4 @@ gdrive_images
 .venv
 __pycache__
 .env
+models/
