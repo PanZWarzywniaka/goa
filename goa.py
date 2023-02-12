@@ -9,6 +9,7 @@ load_dotenv()
 
 openai.organization = os.getenv('OPENAI_ORGANIZATION_ID')
 openai.api_key = os.getenv('OPENAI_API_KEY')
+TARGET_DIR = os.getenv('RAW_IMG_MNT')
 
 
 def generate_images(text_prompt, n=4, format="b64_json"):
@@ -33,20 +34,20 @@ def generate_images(text_prompt, n=4, format="b64_json"):
     return response
 
 
-def save_image(image_data, target_dir="gdrive_images"):
+def save_image(image_data):
 
     start = time.perf_counter()
     bytes_obj, img_name = image_data
 
     b64_bytes = bytes_obj['b64_json']
-    with open(f"{target_dir}/{img_name}", "wb") as f:
+    with open(f"{TARGET_DIR}/{img_name}", "wb") as f:
         f.write(base64.b64decode(b64_bytes))
 
     duration = time.perf_counter()-start
     return img_name, duration
 
 
-def save_images(response, prompt, target_dir=""):
+def save_images(response, prompt):
 
     print("Saving images")
     start_t = time.perf_counter()
