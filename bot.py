@@ -1,7 +1,11 @@
 import discord
-from goa import move_images_to_gdrive, download_images, generate_images
+from goa import generate_images, save_images
 import os
 from dotenv import load_dotenv
+import logging as log
+
+log.basicConfig(filename='bot.log',
+                encoding='utf-8', level=log.DEBUG)
 
 load_dotenv()
 
@@ -13,12 +17,13 @@ client = discord.Client(intents=intents)
 HELP_MSG = """Commands:
         $greet -> prints hello message
         $generate <text prompt> -> generates images and sends to google drive
+        $help -> prints this message
         """
 
 
 @client.event
 async def on_ready():
-    print("Bot ready")
+    log.info("Bot ready")
 
 
 @client.event
@@ -29,7 +34,7 @@ async def on_message(message):
         return
 
     if message.content.startswith('$greet'):
-        await channel.send('Siema siema kurwa witam!')
+        await channel.send("Hello, I'm ready")
         return
 
     if message.content.startswith('$help'):
@@ -44,16 +49,10 @@ async def on_message(message):
         r = generate_images(prompt)
 
         await channel.send(f"Images generated successfully!")
-        await channel.send(f"Starting download")
+        await channel.send(f"Now saving to gdrive.")
         await channel.send(f"Please wait...")
 
-        download_images(r, prompt)
-
-        await channel.send(f"Images downloaded successfully!")
-        await channel.send(f"Starting upload to Google drive")
-        await channel.send(f"Please wait...")
-
-        move_images_to_gdrive()
+        save_images(r, prompt)
 
         await channel.send(f"All done, ready for the next prompt")
         return

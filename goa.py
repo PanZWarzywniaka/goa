@@ -4,6 +4,7 @@ import time
 import os
 from dotenv import load_dotenv
 import base64
+import logging as log
 
 load_dotenv()
 
@@ -14,7 +15,7 @@ TARGET_DIR = os.getenv('RAW_IMG_MNT')
 
 def generate_images(text_prompt, n=4, format="b64_json"):
 
-    print("Generating images...")
+    log.info("Generating images...")
     start_t = time.perf_counter()
 
     try:
@@ -25,16 +26,16 @@ def generate_images(text_prompt, n=4, format="b64_json"):
             response_format=format,
         )
     except openai.error.OpenAIError as e:
-        print(e.http_status)
-        print(e.error)
-        print(e)
+        log.info(e.http_status)
+        log.info(e.error)
+        log.info(e)
 
     duration = time.perf_counter() - start_t
-    print(f"Generating images took {duration:.2f}s")
+    log.info(f"Generating images took {duration:.2f}s")
     return response
 
 
-def save_image(image_data):
+def _save_image(image_data):
 
     start = time.perf_counter()
     bytes_obj, img_name = image_data
@@ -49,7 +50,7 @@ def save_image(image_data):
 
 def save_images(response, prompt):
 
-    print("Saving images")
+    log.info("Saving images")
     start_t = time.perf_counter()
 
     image_bytes_list = response["data"]
@@ -60,13 +61,13 @@ def save_images(response, prompt):
 
     with Pool(processes=len(image_data)) as pool:
 
-        results = pool.imap_unordered(save_image, image_data)
+        results = pool.imap_unordered(_save_image, image_data)
 
         for file_name, duration in results:
-            print(f"{file_name} completed in {duration:.2f}s")
+            log.info(f"{file_name} completed in {duration:.2f}s")
 
     duration = time.perf_counter() - start_t
-    print(f"Saving images took {duration:.2f}s")
+    log.info(f"Saving images took {duration:.2f}s")
 
 
 if __name__ == "__main__":
