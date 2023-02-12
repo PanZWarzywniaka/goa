@@ -1,5 +1,5 @@
 import discord
-from goa import move_images_to_gdrive, download_images, get_images_urls
+from goa import move_images_to_gdrive, download_images, generate_images
 import os
 from dotenv import load_dotenv
 
@@ -41,7 +41,7 @@ async def on_message(message):
         prompt = message.content.split(" ", 1)[-1]
         await channel.send(f"Starting to generate images with prompt: {prompt}")
         await channel.send(f"Please wait...")
-        r = get_images_urls(prompt)
+        r = generate_images(prompt)
 
         await channel.send(f"Images generated successfully!")
         await channel.send(f"Starting download")

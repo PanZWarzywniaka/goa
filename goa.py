@@ -1,12 +1,9 @@
 import openai
-import subprocess
-import glob
-import shutil
 from multiprocessing import Pool
 import time
-import random
 import os
 from dotenv import load_dotenv
+import base64
 
 load_dotenv()
 
@@ -14,76 +11,64 @@ openai.organization = os.getenv('OPENAI_ORGANIZATION_ID')
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
-def get_images_urls(text_prompt: str):
+def generate_images(text_prompt, n=4, format="b64_json"):
+
+    print("Generating images...")
+    start_t = time.perf_counter()
+
     try:
         response = openai.Image.create(
             prompt=text_prompt,
-            n=4,
-            size="1024x1024"
+            n=n,
+            size="1024x1024",
+            response_format=format,
         )
     except openai.error.OpenAIError as e:
         print(e.http_status)
         print(e.error)
         print(e)
 
+    duration = time.perf_counter() - start_t
+    print(f"Generating images took {duration:.2f}s")
     return response
 
 
-def download_image(image):
+def save_image(image_data, target_dir="gdrive_images"):
 
+    start = time.perf_counter()
+    bytes_obj, img_name = image_data
+
+    b64_bytes = bytes_obj['b64_json']
+    with open(f"{target_dir}/{img_name}", "wb") as f:
+        f.write(base64.b64decode(b64_bytes))
+
+    duration = time.perf_counter()-start
+    return img_name, duration
+
+
+def save_images(response, prompt, target_dir=""):
+
+    print("Saving images")
     start_t = time.perf_counter()
 
-    file_name, url = image
-    cmd = ["wget", '-q', f'-O {file_name}', url]
-    temp = subprocess.Popen(cmd)
-    output = str(temp.communicate())
+    image_bytes_list = response["data"]
+    images_names = [f'{prompt}-{i+1}.png' for i,  # create a list of image names e.g. "van gogh-1","van gogh-2" ...
+                    _ in enumerate(image_bytes_list)]
 
-    end_t = time.perf_counter()
+    image_data = list(zip(image_bytes_list, images_names))
 
-    return file_name, end_t-start_t
+    with Pool(processes=len(image_data)) as pool:
 
-
-def download_images(response, name):
-
-    start_t = time.perf_counter()
-
-    # list of [(filename, url)...]
-    images = [(f'{name}-{i+1}.png', entry['url'])
-              for i, entry in enumerate(response['data'])]
-
-    with Pool(processes=len(images)) as pool:
-
-        results = pool.imap_unordered(download_image, images)
+        results = pool.imap_unordered(save_image, image_data)
 
         for file_name, duration in results:
             print(f"{file_name} completed in {duration:.2f}s")
 
-    end_t = time.perf_counter()
-    duration = end_t - start_t
-    print(f"Whole process took {duration:.2f}s")
+    duration = time.perf_counter() - start_t
+    print(f"Saving images took {duration:.2f}s")
 
 
-def move_file_to_gdrive(file_name):
-    start_t = time.perf_counter()
-    shutil.move(src=file_name, dst=f"gdrive_images/{file_name}")
-
-    end_t = time.perf_counter()
-
-    return file_name, end_t-start_t
-
-
-def move_images_to_gdrive():
-
-    start_t = time.perf_counter()
-    file_names = glob.glob('*.png')
-
-    with Pool(processes=len(file_names)) as pool:
-
-        results = pool.imap_unordered(move_file_to_gdrive, file_names)
-
-        for file_name, duration in results:
-            print(f"{file_name} completed in {duration:.2f}s")
-
-    end_t = time.perf_counter()
-    duration = end_t - start_t
-    print(f"Whole process took {duration:.2f}s")
+if __name__ == "__main__":
+    prompt = "soviet propaganda poster space mission"
+    x = generate_images(prompt)
+    save_images(x, prompt)
