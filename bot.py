@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 import logging as log
 
-log.basicConfig(filename='bot.log',
+log.basicConfig(filename='logs/bot.log',
                 encoding='utf-8', level=log.DEBUG)
 
 load_dotenv()
@@ -52,7 +52,10 @@ async def on_message(message):
         await channel.send(f"Now saving to gdrive.")
         await channel.send(f"Please wait...")
 
-        save_images(r, prompt)
+        try:
+            save_images(r, prompt)
+        except Exception as e:
+            await channel.send(f"Saving images went wrong!")
 
         await channel.send(f"All done, ready for the next prompt")
         return

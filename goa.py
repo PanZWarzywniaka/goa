@@ -71,6 +71,9 @@ def save_images(response, prompt):
 
 
 if __name__ == "__main__":
+    import sys
+    log.basicConfig(stream=sys.stdout, level=log.DEBUG)
+
     prompt = "soviet propaganda poster space mission"
     x = generate_images(prompt)
     save_images(x, prompt)
