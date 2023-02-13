@@ -46,15 +46,21 @@ async def on_message(message):
         prompt = message.content.split(" ", 1)[-1]
         await channel.send(f"Starting to generate images with prompt: {prompt}")
         await channel.send(f"Please wait...")
-        r = generate_images(prompt)
 
-        await channel.send(f"Images generated successfully!")
+        r, msg = generate_images(prompt)
+        await channel.send(msg)
+
+        if r is None:
+            await channel.send(f"Quiting.")
+            return
+
         await channel.send(f"Now saving to gdrive.")
         await channel.send(f"Please wait...")
 
         try:
             save_images(r, prompt)
         except Exception as e:
+            log.debug(e)
             await channel.send(f"Saving images went wrong!")
 
         await channel.send(f"All done, ready for the next prompt")

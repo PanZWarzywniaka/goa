@@ -15,24 +15,34 @@ TARGET_DIR = os.getenv('RAW_IMG_MNT')
 
 def generate_images(text_prompt, n=4, format="b64_json"):
 
-    log.info("Generating images...")
-    start_t = time.perf_counter()
-
     try:
+        log.info("Generating images...")
+        start_t = time.perf_counter()
+
         response = openai.Image.create(
             prompt=text_prompt,
             n=n,
             size="1024x1024",
             response_format=format,
         )
+
+        duration = time.perf_counter() - start_t
+        log.info(f"Generating images took {duration:.2f}s")
+        return response, "Images generated successfully!"
+
     except openai.error.OpenAIError as e:
         log.info(e.http_status)
         log.info(e.error)
         log.info(e)
+        return None, str(e)
 
-    duration = time.perf_counter() - start_t
-    log.info(f"Generating images took {duration:.2f}s")
-    return response
+
+def validate_response(resp) -> bool:
+    if resp.code == 200:
+        return True
+
+    log.debug(resp.message)
+    return False
 
 
 def _save_image(image_data):
@@ -74,6 +84,8 @@ if __name__ == "__main__":
     import sys
     log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
-    prompt = "soviet propaganda poster space mission"
-    x = generate_images(prompt)
-    save_images(x, prompt)
+    prompt = "pigs"
+    r, msg = generate_images(prompt)
+    log.info(msg)
+    if r is not None:
+        save_images(r, prompt)
