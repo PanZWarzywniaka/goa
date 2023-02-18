@@ -84,7 +84,7 @@ if __name__ == "__main__":
     import sys
     log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
-    prompt = "pigs"
+    prompt = "oil pastel poster, abstract normative structures, title \"sea lien\", stippling"
     r, msg = generate_images(prompt)
     log.info(msg)
     if r is not None:

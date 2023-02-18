@@ -5,7 +5,10 @@ from dotenv import load_dotenv
 import logging as log
 
 log.basicConfig(filename='logs/bot.log',
-                encoding='utf-8', level=log.DEBUG)
+                encoding='utf-8', 
+                level=log.DEBUG,
+                format='%(asctime)s:%(levelname)s:%(message)s',
+                )
 
 load_dotenv()
 
@@ -59,8 +62,8 @@ async def on_message(message):
 
         try:
             save_images(r, prompt)
-        except Exception as e:
-            log.debug(str(e))
+        except Exception:
+            log.exception("Saving images exception")
             await channel.send(f"Saving images went wrong!")
             return
 
