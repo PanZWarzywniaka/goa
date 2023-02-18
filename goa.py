@@ -11,11 +11,6 @@ load_dotenv()
 openai.organization = os.getenv('OPENAI_ORGANIZATION_ID')
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-RAW_IMG_MNT = os.getenv('RAW_IMG_MNT')
-SELECTED_IMG_MNT= os.getenv("SELECTED_IMG_MNT")
-NO_WM_IMG_MNT=os.getenv("NO_WM_IMG_MNT")
-TO_UPSCALE_MNT=os.getenv("TO_UPSCALE_MNT")
-
 
 def generate_images(text_prompt, n=4, format="b64_json"):
 
@@ -63,7 +58,7 @@ def _save_image(image_data):
     return img_name, duration
 
 
-def save_images(response, prompt, target_dir):
+def save_images(response, prompt, target_dir="."):
 
     log.info("Saving images")
     start_t = time.perf_counter()

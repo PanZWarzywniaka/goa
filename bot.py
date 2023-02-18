@@ -11,6 +11,11 @@ load_dotenv()
 
 TOKEN = os.getenv('BOT_TOKEN')
 
+RAW_IMG_MNT = os.getenv('RAW_IMG_MNT')
+SELECTED_IMG_MNT = os.getenv("SELECTED_IMG_MNT")
+NO_WM_IMG_MNT = os.getenv("NO_WM_IMG_MNT")
+TO_UPSCALE_MNT = os.getenv("TO_UPSCALE_MNT")
+
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
@@ -58,7 +63,7 @@ async def on_message(message):
         await channel.send(f"Please wait...")
 
         try:
-            save_images(r, prompt)
+            save_images(r, prompt, target_dir=RAW_IMG_MNT)
         except Exception as e:
             log.debug(str(e))
             await channel.send(f"Saving images went wrong!")
