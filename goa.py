@@ -10,7 +10,11 @@ load_dotenv()
 
 openai.organization = os.getenv('OPENAI_ORGANIZATION_ID')
 openai.api_key = os.getenv('OPENAI_API_KEY')
-TARGET_DIR = os.getenv('RAW_IMG_MNT')
+
+RAW_IMG_MNT = os.getenv('RAW_IMG_MNT')
+SELECTED_IMG_MNT= os.getenv("SELECTED_IMG_MNT")
+NO_WM_IMG_MNT=os.getenv("NO_WM_IMG_MNT")
+TO_UPSCALE_MNT=os.getenv("TO_UPSCALE_MNT")
 
 
 def generate_images(text_prompt, n=4, format="b64_json"):
@@ -48,17 +52,18 @@ def validate_response(resp) -> bool:
 def _save_image(image_data):
 
     start = time.perf_counter()
-    bytes_obj, img_name = image_data
+
+    bytes_obj, img_name, target_dir = image_data
 
     b64_bytes = bytes_obj['b64_json']
-    with open(f"{TARGET_DIR}/{img_name}", "wb") as f:
+    with open(f"{target_dir}/{img_name}", "wb") as f:
         f.write(base64.b64decode(b64_bytes))
 
     duration = time.perf_counter()-start
     return img_name, duration
 
 
-def save_images(response, prompt):
+def save_images(response, prompt, target_dir):
 
     log.info("Saving images")
     start_t = time.perf_counter()
@@ -67,7 +72,9 @@ def save_images(response, prompt):
     images_names = [f'{prompt}-{i+1}.png' for i,  # create a list of image names e.g. "van gogh-1","van gogh-2" ...
                     _ in enumerate(image_bytes_list)]
 
-    image_data = list(zip(image_bytes_list, images_names))
+    target_dirs = [target_dir for _ in image_bytes_list]
+
+    image_data = list(zip(image_bytes_list, images_names, target_dirs))
 
     with Pool(processes=len(image_data)) as pool:
 
