@@ -23,8 +23,8 @@ intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
 HELP_MSG = """Commands:
-        $greet -> prints hello message
-        $generate <text prompt> -> generates images and sends to google drive
+        $hello -> prints hello message
+        $g / $generate <text prompt> -> generates images and sends to google drive
         $help -> prints this message
         """
 
@@ -38,20 +38,21 @@ async def on_ready():
 async def on_message(message):
 
     channel = message.channel
+    content = message.content
     if message.author == client.user:
         return
 
-    if message.content.startswith('$greet'):
+    if content.startswith('$hello '):
         await channel.send("Hello, I'm ready")
         return
 
-    if message.content.startswith('$help'):
+    if content.startswith('$help '):
         await channel.send(HELP_MSG)
         return
 
-    if message.content.startswith('$generate'):
+    if content.startswith('$generate ') or content.startswith('$g '):
 
-        prompt = message.content.split(" ", 1)[-1]
+        prompt = content.split(" ", 1)[-1]
         await channel.send(f"Starting to generate images with prompt: {prompt}")
         await channel.send(f"Please wait...")
 
@@ -75,7 +76,7 @@ async def on_message(message):
         await channel.send(f"All done, ready for the next prompt")
         return
 
-    if message.content.startswith('$'):
+    if content.startswith('$'):
         await channel.send(f"Command not recognized!")
         await channel.send(HELP_MSG)
         return
