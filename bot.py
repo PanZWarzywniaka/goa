@@ -1,5 +1,5 @@
 import discord
-from goa import generate_images, save_images
+from goa.generate import generate_images, save_images
 import os
 from dotenv import load_dotenv
 import logging as log
