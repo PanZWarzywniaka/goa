@@ -8,7 +8,7 @@ import logging as log
 from io import BytesIO
 from PIL import Image
 import base64
-from util import get_prompt_from_path
+from .util import get_prompt_from_path
 
 load_dotenv()
 
@@ -69,7 +69,7 @@ def add_padding(img_path, type="top"):
 
 def get_box_selection(image, left, top):
     
-    box = (left, top, left+MAX_RES, top+MAX_RES)
+    box = [left, top, left+MAX_RES, top+MAX_RES]
 
     #check if box is not out of image bounds
     w, h = image.size
@@ -80,7 +80,7 @@ def get_box_selection(image, left, top):
     if box[3] > h:
         box[3] = h
 
-    return box
+    return tuple(box)
 
 def parse_image(image_data):
     image = Image.open(BytesIO(base64.b64decode(image_data)))
@@ -139,4 +139,6 @@ if __name__ == "__main__":
     log.basicConfig(stream=sys.stdout, level=log.DEBUG)
     img_path = glob.glob(f"{os.getenv('TO_EXTEND_MNT')}/*png")[0]
     # add_padding(img_path, "bottom")
-    modify_image(img_path, 0, 0, os.getenv('EXTENDED_MNT'))
+    # modify_image(img_path, 0, 512, os.getenv('EXTENDED_MNT'))
+    img = Image.open(img_path)
+    log.info(get_box_selection(img, 1000, 1000))

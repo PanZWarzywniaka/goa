@@ -1,6 +1,8 @@
 import discord
 from goa.generate import generate_images, save_images
+from goa.extend import modify_image, add_padding
 import os
+import glob
 from dotenv import load_dotenv
 import logging as log
 
@@ -18,6 +20,8 @@ RAW_IMG_MNT = os.getenv('RAW_IMG_MNT')
 SELECTED_IMG_MNT = os.getenv("SELECTED_IMG_MNT")
 NO_WM_IMG_MNT = os.getenv("NO_WM_IMG_MNT")
 TO_UPSCALE_MNT = os.getenv("TO_UPSCALE_MNT")
+TO_EXTEND_MNT = os.getenv('TO_EXTEND_MNT')
+EXTENDED_MNT = os.getenv('EXTENDED_MNT')
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
@@ -75,6 +79,30 @@ async def on_message(message):
 
         await channel.send(f"All done, ready for the next prompt")
         return
+
+    
+    if content.startswith('$extend ') or content.startswith('$ex '):
+
+        params = content.split(" ")[1:]
+        img_path = glob.glob(f"{TO_EXTEND_MNT}/*png")[0]
+
+        if params[0] == "pad":
+            pad_type = params[1]
+
+
+            await channel.send(f"Padding {pad_type} of {img_path}...")
+            add_padding(img_path, pad_type)
+            await channel.send(f"All done, ready for the next prompt")
+            return 
+
+        if params[0] == "modify":
+            left = int(params[1])
+            top = int(params[2])
+
+            await channel.send(f"Modifying {img_path}...")
+            modify_image(img_path, left, top, EXTENDED_MNT)
+            await channel.send(f"All done, ready for the next prompt")
+            return
 
     if content.startswith('$'):
         await channel.send(f"Command not recognized!")
