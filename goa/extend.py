@@ -123,7 +123,7 @@ def modify_image(img_path, left, top, target_dir):
     box = get_box_selection(img, left, top)
     crop = img.crop(box)
     crop_bytes = image_to_byte_array(crop)
-    r, msg = openai_edit_image(crop_bytes, prompt, n=10)
+    r, msg = openai_edit_image(crop_bytes, prompt, n=5)
 
     log.info(msg)
 

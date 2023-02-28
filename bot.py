@@ -1,6 +1,7 @@
 import discord
 from goa.generate import generate_images, save_images
 from goa.extend import modify_image, add_padding
+from goa.util import get_filename_from_path
 import os
 import glob
 from dotenv import load_dotenv
@@ -30,6 +31,11 @@ HELP_MSG = """Commands:
         $hello -> prints hello message
         $g / $generate <text prompt> -> generates images and sends to google drive
         $help -> prints this message
+        $ex / $extend -> tools for extending images
+            $ex pad [top|bottom|left|right] -> adds alpha padding from specified side
+                e.g. $ex pad bottom
+            $ex modify [x] [y] -> sends request to OpenAI to modify crop of the image, (x,y) values specify top left corner of the crop
+                e.g. $ex modify 0 512
         """
 
 
@@ -46,11 +52,11 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if content.startswith('$hello '):
+    if content.startswith('$hello'):
         await channel.send("Hello, I'm ready")
         return
 
-    if content.startswith('$help '):
+    if content.startswith('$help'):
         await channel.send(HELP_MSG)
         return
 
@@ -85,22 +91,36 @@ async def on_message(message):
 
         params = content.split(" ")[1:]
         img_path = glob.glob(f"{TO_EXTEND_MNT}/*png")[0]
+        file_name = get_filename_from_path(img_path)
 
         if params[0] == "pad":
             pad_type = params[1]
 
 
-            await channel.send(f"Padding {pad_type} of {img_path}...")
-            add_padding(img_path, pad_type)
+            await channel.send(f"Padding {pad_type} of {file_name}...")
+            try:
+                add_padding(img_path, pad_type)
+            except Exception as e:
+                log.exception("Add padding exception")
+                await channel.send(f"Padding images went wrong!")
+                return
+            
             await channel.send(f"All done, ready for the next prompt")
             return 
 
         if params[0] == "modify":
+
+            
+            await channel.send(f"Modifying {file_name}...")
+
             left = int(params[1])
             top = int(params[2])
-
-            await channel.send(f"Modifying {img_path}...")
-            modify_image(img_path, left, top, EXTENDED_MNT)
+            try:
+                modify_image(img_path, left, top, EXTENDED_MNT)
+            except Exception as e:
+                log.exception("Add padding exception")
+                await channel.send(f"Modifying images went wrong!")
+                return
             await channel.send(f"All done, ready for the next prompt")
             return
 
