@@ -1,4 +1,5 @@
 import discord
+from discord.ext import commands
 from goa.generate import generate_images, save_images
 from goa.extend import modify_image, add_padding
 from goa.util import get_filename_from_path
@@ -6,6 +7,7 @@ import os
 import glob
 from dotenv import load_dotenv
 import logging as log
+
 
 log.basicConfig(filename='logs/bot.log',
                 encoding='utf-8', 
@@ -25,109 +27,118 @@ TO_EXTEND_MNT = os.getenv('TO_EXTEND_MNT')
 EXTENDED_MNT = os.getenv('EXTENDED_MNT')
 
 intents = discord.Intents.all()
-client = discord.Client(intents=intents)
 
-HELP_MSG = """Commands:
-        $hello -> prints hello message
-        $g / $generate <text prompt> -> generates images and sends to google drive
-        $help -> prints this message
-        $ex / $extend -> tools for extending images
-            $ex pad [top|bottom|left|right] -> adds alpha padding from specified side
-                e.g. $ex pad bottom
-            $ex modify [x] [y] -> sends request to OpenAI to modify crop of the image, (x,y) values specify top left corner of the crop
-                e.g. $ex modify 0 512
-        """
+bot = commands.Bot(command_prefix='$', intents=intents)
 
 
-@client.event
+
+@bot.event
 async def on_ready():
     log.info("Bot ready")
 
 
-@client.event
-async def on_message(message):
+async def send_help_msg(ctx):
+    HELP_MSG = """Commands:
+        $hello -> prints hello message
+        $g / $generate <text prompt> -> generates images and sends to google drive
+        $help -> prints this message
+        $pad [top|bottom|left|right] -> adds alpha padding from specified side
+            e.g. $pad bottom
+        $modify [x] [y] -> sends request to OpenAI to modify crop of the image, (x,y) values specify top left corner of the crop
+                e.g. $modify 0 512
+        """
 
-    channel = message.channel
-    content = message.content
-    if message.author == client.user:
+    await ctx.send(HELP_MSG)
+
+
+@bot.command(pass_context=True)
+async def hello(ctx, *args):
+    await ctx.send("Hello, I'm ready")
+
+### IMAGE GENERATION
+
+async def generate_and_save_images(ctx, prompt):
+    await ctx.send(f"Starting image generation of prompt: {prompt}")
+    r, msg = generate_images(prompt, n=10)
+    await ctx.send(msg)
+    await ctx.send("Now trying to save images")
+
+    if r is None:
+        await ctx.send(f"Quiting.")
         return
-
-    if content.startswith('$hello'):
-        await channel.send("Hello, I'm ready")
-        return
-
-    if content.startswith('$help'):
-        await channel.send(HELP_MSG)
-        return
-
-    if content.startswith('$generate ') or content.startswith('$g '):
-
-        prompt = content.split(" ", 1)[-1]
-        await channel.send(f"Starting to generate images with prompt: {prompt}")
-        await channel.send(f"Please wait...")
-
-        r, msg = generate_images(prompt, n=10)
-        await channel.send(msg)
-
-        if r is None:
-            await channel.send(f"Quiting.")
-            return
-
-        await channel.send(f"Now saving to gdrive.")
-        await channel.send(f"Please wait...")
-
-        try:
-            save_images(r, prompt, target_dir=RAW_IMG_MNT)
-        except Exception as e:
-            log.exception("Saving images exception")
-            await channel.send(f"Saving images went wrong!")
-            return
-
-        await channel.send(f"All done, ready for the next prompt")
-        return
-
-    
-    if content.startswith('$extend ') or content.startswith('$ex '):
-
-        params = content.split(" ")[1:]
-        img_path = glob.glob(f"{TO_EXTEND_MNT}/*png")[0]
-        file_name = get_filename_from_path(img_path)
-
-        if params[0] == "pad":
-            pad_type = params[1]
+    try:
+        save_images(r, prompt, target_dir=RAW_IMG_MNT)
+    except IOError:
+        log.exception("Saving images, IOError exception")
+        await ctx.send(f"Saving images went wrong! (IOError exception)")
+    except Exception:
+        log.exception("Saving generated images exception")
+        await ctx.send(f"Saving generated images went wrong!")
+    else: #print success
+        await ctx.send(f"Generating images done, ready for the next prompt")
 
 
-            await channel.send(f"Padding {pad_type} of {file_name}...")
-            try:
-                add_padding(img_path, pad_type)
-            except Exception as e:
-                log.exception("Add padding exception")
-                await channel.send(f"Padding images went wrong!")
-                return
-            
-            await channel.send(f"All done, ready for the next prompt")
-            return 
+@bot.command(pass_context=True)
+async def g(ctx, *, prompt):
+    await generate_and_save_images(ctx, prompt)
 
-        if params[0] == "modify":
+@bot.command(pass_context=True)
+async def generate(ctx, *, prompt):
+    await generate_and_save_images(ctx, prompt)
 
-            
-            await channel.send(f"Modifying {file_name}...")
+### PADDING
 
-            left = int(params[1])
-            top = int(params[2])
-            try:
-                modify_image(img_path, left, top, EXTENDED_MNT)
-            except Exception as e:
-                log.exception("Add padding exception")
-                await channel.send(f"Modifying images went wrong!")
-                return
-            await channel.send(f"All done, ready for the next prompt")
-            return
+@bot.command(pass_context=True)
+async def pad(ctx, pad_type):
+    img_path = glob.glob(f"{TO_EXTEND_MNT}/*png")[0]
+    file_name = get_filename_from_path(img_path)
+    await ctx.send(f"Padding {pad_type} of {file_name}...")
 
-    if content.startswith('$'):
-        await channel.send(f"Command not recognized!")
-        await channel.send(HELP_MSG)
-        return
+    try:
+        add_padding(img_path, pad_type)
+    except Exception:
+        log.exception("Add padding exception")
+        await ctx.send(f"Padding images went wrong!")
+    else: #print success
+        await ctx.send(f"Padding done, ready for the next prompt")
+
+### MODIFYING IMAGES
+
+@bot.command(pass_context=True)
+async def modify(ctx, left: int, top: int):
+    img_path = glob.glob(f"{TO_EXTEND_MNT}/*png")[0]
+    file_name = get_filename_from_path(img_path)
+    await ctx.send(f"Modifying {file_name} from coords ({left},{top})...")
+
+    try:
+        modify_image(img_path, left, top, EXTENDED_MNT)
+    except IOError:
+        log.exception("Saving images, IOError exception")
+        await ctx.send(f"Saving images went wrong! (IOError exception)")
+    except Exception:
+        log.exception("Saving images exception")
+        await ctx.send(f"Saving images went wrong!")
+    else: #print success
+        await ctx.send(f"Modifying done, ready for the next prompt")
+
+### ERROR HANDLING
+
+@bot.event
+async def on_command_error(context, error) -> None:
+    """
+    The code in this event is executed every time a normal valid command catches an error.
+    :param context: The context of the normal command that failed executing.
+    :param error: The error that has been faced.
+    """
+    e_string = str(error).capitalize()
+    embed = discord.Embed(
+            title="Error!",
+            # We need to capitalize because the command arguments have no capital letter in the code.
+            description=e_string,
+            color=0xE02B2B,
+        )
+    log.error(e_string)
+    await context.send(embed=embed)
 
 
-client.run(TOKEN)
+bot.run(TOKEN)
