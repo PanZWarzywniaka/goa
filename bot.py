@@ -7,12 +7,13 @@ import os
 import glob
 from dotenv import load_dotenv
 import logging as log
-
+import time
+import subprocess
 
 log.basicConfig(filename='logs/bot.log',
                 encoding='utf-8', 
                 level=log.DEBUG,
-                format='%(asctime)s:%(levelname)s:%(message)s',
+                format='%(asctime)s:%(module)s:%(funcName)s:%(levelname)s:%(message)s',
                 )
 
 load_dotenv()
@@ -28,14 +29,26 @@ EXTENDED_MNT = os.getenv('EXTENDED_MNT')
 
 intents = discord.Intents.all()
 
-bot = commands.Bot(command_prefix='$', intents=intents)
-
-
+bot = commands.Bot(command_prefix='$', intents=intents, help_command=None)
 
 @bot.event
 async def on_ready():
     log.info("Bot ready")
 
+async def remount_gdrive(ctx):
+    
+    log.info("Remounting gdrive.")
+    await ctx.send("Resyncing with Google drive...")
+    
+    CMD_STR = "umount mnt && rclone mount --daemon goa_drive: mnt"
+    result = subprocess.run(CMD_STR, shell=True)
+
+    assert result.returncode == 0, "Remounting gdrive was not successfull."
+
+    while not os.path.exists("mnt/images"):
+        time.sleep(0.1)
+
+    log.info("Remounting done.")
 
 async def send_help_msg(ctx):
     HELP_MSG = """Commands:
@@ -55,27 +68,22 @@ async def send_help_msg(ctx):
 async def hello(ctx, *args):
     await ctx.send("Hello, I'm ready")
 
+@bot.command()
+async def help(ctx, *args):
+    await send_help_msg(ctx)
+
 ### IMAGE GENERATION
 
 async def generate_and_save_images(ctx, prompt):
-    await ctx.send(f"Starting image generation of prompt: {prompt}")
-    r, msg = generate_images(prompt, n=10)
-    await ctx.send(msg)
-    await ctx.send("Now trying to save images")
+    await remount_gdrive(ctx)
 
-    if r is None:
-        await ctx.send(f"Quiting.")
-        return
-    try:
-        save_images(r, prompt, target_dir=RAW_IMG_MNT)
-    except IOError:
-        log.exception("Saving images, IOError exception")
-        await ctx.send(f"Saving images went wrong! (IOError exception)")
-    except Exception:
-        log.exception("Saving generated images exception")
-        await ctx.send(f"Saving generated images went wrong!")
-    else: #print success
-        await ctx.send(f"Generating images done, ready for the next prompt")
+    await ctx.send(f"Starting image generation with prompt: {prompt}")
+    r = await generate_images(prompt, n=10)
+
+    await ctx.send("Now trying to save images.")
+
+    save_images(r, prompt, target_dir=RAW_IMG_MNT)
+    await ctx.send(f"Generating images done, ready for the next prompt")
 
 
 @bot.command(pass_context=True)
@@ -90,36 +98,30 @@ async def generate(ctx, *, prompt):
 
 @bot.command(pass_context=True)
 async def pad(ctx, pad_type):
+
+    await remount_gdrive(ctx)
+
     img_path = glob.glob(f"{TO_EXTEND_MNT}/*png")[0]
     file_name = get_filename_from_path(img_path)
     await ctx.send(f"Padding {pad_type} of {file_name}...")
 
-    try:
-        add_padding(img_path, pad_type)
-    except Exception:
-        log.exception("Add padding exception")
-        await ctx.send(f"Padding images went wrong!")
-    else: #print success
-        await ctx.send(f"Padding done, ready for the next prompt")
+    add_padding(img_path, pad_type)
+    await ctx.send(f"Padding done, ready for the next prompt")
 
 ### MODIFYING IMAGES
 
 @bot.command(pass_context=True)
 async def modify(ctx, left: int, top: int):
-    img_path = glob.glob(f"{TO_EXTEND_MNT}/*png")[0]
+
+    await remount_gdrive(ctx)
+    images = glob.glob(f"{TO_EXTEND_MNT}/*png")
+    img_path = images[0] #take the first one
     file_name = get_filename_from_path(img_path)
     await ctx.send(f"Modifying {file_name} from coords ({left},{top})...")
 
-    try:
-        modify_image(img_path, left, top, EXTENDED_MNT)
-    except IOError:
-        log.exception("Saving images, IOError exception")
-        await ctx.send(f"Saving images went wrong! (IOError exception)")
-    except Exception:
-        log.exception("Saving images exception")
-        await ctx.send(f"Saving images went wrong!")
-    else: #print success
-        await ctx.send(f"Modifying done, ready for the next prompt")
+    
+    await modify_image(img_path, left, top, EXTENDED_MNT)
+    await ctx.send(f"Modifying done, ready for the next prompt")
 
 ### ERROR HANDLING
 

@@ -12,29 +12,21 @@ openai.organization = os.getenv('OPENAI_ORGANIZATION_ID')
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
-def generate_images(text_prompt, n=4, format="b64_json"):
+async def generate_images(text_prompt, n=4, format="b64_json"):
 
-    try:
-        log.info("Generating images...")
-        start_t = time.perf_counter()
+    log.info("Generating images...")
+    start_t = time.perf_counter()
 
-        response = openai.Image.create(
-            prompt=text_prompt,
-            n=n,
-            size="1024x1024",
-            response_format=format,
-        )
+    response = await openai.Image.acreate(
+        prompt=text_prompt,
+        n=n,
+        size="1024x1024",
+        response_format=format,
+    )
 
-        duration = time.perf_counter() - start_t
-        log.info(f"Generating images took {duration:.2f}s")
-        return response, "Images generated successfully!"
-
-    except openai.error.OpenAIError as e:
-        log.info(e.http_status)
-        log.info(e.error)
-        log.info(e)
-        return None, str(e)
-
+    duration = time.perf_counter() - start_t
+    log.info(f"Generating images took {duration:.2f}s")
+    return response
 
 def validate_response(resp) -> bool:
     if resp.code == 200:
