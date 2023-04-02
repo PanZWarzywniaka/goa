@@ -1,4 +1,6 @@
 *.log
+*.svg
+cache/
 *.png
 images/
 gdrive_images
