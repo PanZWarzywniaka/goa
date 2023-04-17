@@ -4,15 +4,16 @@ from map import Color, Map
 if __name__ == "__main__":
     #MALTA
     colour_set = [
-        ("1",Color("#194a59ff"), Color("#9370db88"), Color("#1c5363ff"), Color("#fffafa88")),
-        ("2",Color("#49428bd9"), Color("#ff69b4ca"), Color("#1c5363ff"), Color("#f5deb3ff")),
-        ("3",Color("#d7515f98"), Color("#bdb76bca"), Color("#1c5363ff"), Color("#191970ff")),
-        ("4",Color("#e700089b"), Color("#00224de2"), Color("#1c5363ff"), Color("#002a37ff")),
-        ("5",Color("#60a4202e"), Color("#00224de2"), Color("#1c5363ff"), Color("#d3a318ff")),
-        ("6",Color("#da1e95ef"), Color("#e4cd00c9"), Color("#1c5363ff"), Color("#ffffffff")),
-        ("7",Color("#949494ff"), Color("#002232ff"), Color("#1c5363ff"), Color("#ffffffff")),
-        ("8",Color("#12392aff"), Color("#8098afff"), Color("#1c5363ff"), Color("#c84b9dff")),
-        ("9",Color("#12392aff"), Color("#8098afff"), Color("#1c5363ff"), Color("#c84b9dff")),
+        ("1",Color("#194a59ff"), Color("#9e7edeff"), Color("#1c5363ff"), Color("#fffafaff")),
+        ("2",Color("#50499aff"), Color("#f17cb6ff"), Color("#47408cff"), Color("#f5deb3ff")),
+        ("3",Color("#d66c77ff"), Color("#b8b483ff"), Color("#d25b67ff"), Color("#191970ff")),
+        ("4",Color("#cd4b4fff"), Color("#102e56ff"), Color("#d35f63ff"), Color("#e9f4ffff")),
+        ("5",Color("#b1cb99ff"), Color("#00347aff"), Color("#a5c389ff"), Color("#404040ff")),
+        ("6",Color("#cd2d93ff"), Color("#f5df16ff"), Color("#b82884ff"), Color("#000000ff")),
+        ("7",Color("#949494ff"), Color("#002e42ff"), Color("#6b6b6bff"), Color("#1a1a1aff")),
+        ("8",Color("#12392aff"), Color("#8098afff"), Color("#174a36ff"), Color("#e3e3e3ff")),
+        ("9",Color("#a5110cff"), Color("#22247cff"), Color("#920e0cff"), Color("#d8d8d8ff")),
+        ("10",Color("#f16100ff"), Color("#003825ff"), Color("#ff6905ff"), Color("#480000ff")),
     ]
     for name, city_col, water_col, greenery_col, roads_col in colour_set:
 
