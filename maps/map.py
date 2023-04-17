@@ -86,7 +86,7 @@ class Map:
 
     def _query(self, selector, el_type):
         query = overpassQueryBuilder(bbox=self.bbox,  selector=selector, elementType=el_type, includeGeometry=True)
-        result = Overpass().query(query).toJSON()
+        result = Overpass().query(query, timeout=60).toJSON()
         return result
 
     def _parse_geometry(self, geometry):
