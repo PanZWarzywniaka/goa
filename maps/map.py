@@ -131,8 +131,9 @@ class Map:
     def _plot_relation_members(self, ways, group, is_outer: bool):
         lines = []
         for way in ways:
-            points = self._parse_geometry(way['geometry'])
-            lines.append(points)
+            if way['type'] == 'way':                
+                points = self._parse_geometry(way['geometry'])
+                lines.append(points)
 
         #merge lines into rings
         mls = MultiLineString(lines)
@@ -191,27 +192,4 @@ class Map:
         d.save_svg(target)
 
 if __name__ == "__main__":
-    print("Mapping hello")
-
-
-    map = Map(
-        title="alicante",
-        bbox=[38.308227, -0.555883, 38.395898, -0.389250],
-        zoom=12,
-        width=1000,
-        height=1000,
-        bg_col=Color("#e700089b"))
-
-
-    #CITY BOUNDARY
-    map.add_areas("'admin_level'='6'", color=Color("#da1e95ef"), name="city")
-
-    #CITY WATER
-    map.add_areas("'natural'='water'", color=Color("#8098afff"), name="city_water")
-
-    #ROADS
-    s = '"highway"~"^(((motorway|trunk|primary|secondary|tertiary)(_link)?)|unclassified|residential|living_street|pedestrian|service|track)$"'
-    map.add_ways(selector=s, color=Color("#002a37ff"), width = 0.2, name="roads")
-    
-    #SAVE
-    map.save()
+    print("This file should not be run as main.")
