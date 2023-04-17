@@ -19,7 +19,7 @@ def main():
 
         map = Map(
             title=f"new_york-{name}",
-            bbox=[40.684669, -74.049414, 40.801947, -73.914903],
+            bbox=[40.631132, -74.104022, 40.849119, -73.890475],
             zoom=12,
             width=1000,
             height=1000,
@@ -29,11 +29,13 @@ def main():
         #CITY BOUNDARY
         map.add_areas("'admin_level'='6'", color=city_col, name="city")
 
+        #BAY
+        map.add_areas("'natural'='bay'", color=water_col, name="city_water")
+
         #CITY WATER
         map.add_areas("'natural'='water'", color=water_col, name="city_water")
 
         #AIRPORTS
-
         #AERODROMES
         map.add_areas("'aeroway'='aerodrome'", color=greenery_col, name="aerodrome")
 
