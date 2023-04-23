@@ -8,10 +8,27 @@ from reportlab.graphics import renderPDF, renderPM
 from shapely import line_merge, polygonize, MultiLineString, LineString, Polygon
 import pathlib
 from dataclasses import dataclass
+import re
 
-@dataclass(frozen=True)
+@dataclass
 class Color:
-    rgba: str = "#ffffffff"
+    rgba: str = "#ffffffff" #default colour
+
+
+    #accept col strings like
+    def __init__(self, col_str: str) -> None:
+        if not col_str.startswith('#'):
+            col_str = '#'+col_str #ensure that starts with "#"
+        
+        if len(col_str[1:]) == 6: #if its RGB string
+            col_str += "ff" #make colour opaque by default
+
+        #validate
+        regex = r"^#(?:[0-9a-fA-F]{2}){4}$"
+        if not bool(re.match(regex,col_str)):
+            raise ValueError(f"Colour string {col_str} is not valid hex RGBA")
+
+        self.rgba = col_str
 
     @property
     def rgb(self) -> str:

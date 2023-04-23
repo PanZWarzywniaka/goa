@@ -9,16 +9,16 @@ if __name__ == "__main__":
     title = "barcelona"
 
     colour_set = [
-        ("1", Color("#355b67ff"), Color("#a689e1ff"), Color("#2e4f59ff"), Color("#dfdfdfff")),
-        ("2", Color("#5b539dff"), Color("#e788b7ff"), Color("#4d4587ff"), Color("#e5e5e5ff")),
-        ("3", Color("#cb737cff"), Color("#bdb76bff"), Color("#c45a65ff"), Color("#e5e5e5ff")),
-        ("4", Color("#da585bff"), Color("#062855ff"), Color("#c32b2fff"), Color("#002a37ff")),
-        ("5", Color("#aabf95ff"), Color("#092c59ff"), Color("#9db686ff"), Color("#292929ff")),
-        ("6", Color("#b9167dff"), Color("#ff9515ff"), Color("#c91888ff"), Color("#ffffffff")),
-        ("7", Color("#949494ff"), Color("#002232ff"), Color("#8a8a8aff"), Color("#eeeeeeff")),
-        ("8", Color("#12392aff"), Color("#8098afff"), Color("#154234ff"), Color("#ddddddff")),
-        ("9", Color("#a36d6dff"), Color("#5a0000ff"), Color("#996161ff"), Color("#280000ff")),
-        ("10", Color("#00185bff"), Color("#ffc51aff"), Color("#001d70ff"), Color("#f0f0f0ff")),
+        ("1", Color("#355b67"), Color("#a689e1"), Color("#2e4f59"), Color("#dfdfdf")),
+        ("2", Color("#5b539d"), Color("#e788b7"), Color("#4d4587"), Color("#e5e5e5")),
+        ("3", Color("#cb737c"), Color("#bdb76b"), Color("#c45a65"), Color("#e5e5e5")),
+        ("4", Color("#da585b"), Color("#062855"), Color("#c32b2f"), Color("#002a37")),
+        ("5", Color("#aabf95"), Color("#092c59"), Color("#9db686"), Color("#292929")),
+        ("6", Color("#b9167d"), Color("#ff9515"), Color("#c91888"), Color("#ffffff")),
+        ("7", Color("#949494"), Color("#002232"), Color("#8a8a8a"), Color("#eeeeee")),
+        ("8", Color("#12392a"), Color("#8098af"), Color("#154234"), Color("#dddddd")),
+        ("9", Color("#a36d6d"), Color("#5a0000"), Color("#996161"), Color("#280000")),
+        ("10", Color("#00185b"), Color("#ffc51a"), Color("#001d70"), Color("#f0f0f0")),
     ]
 
     for name, city_col, water_col, greenery_col, roads_col in colour_set:
